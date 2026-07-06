@@ -6,6 +6,8 @@ con leaderboard en vivo. Funciona en el navegador y se puede instalar en el celu
 
 Hecho con **React + Vite** y **Supabase** (login, base de datos y datos compartidos).
 
+Desplegado en producción: https://rankup-app.vercel.app
+
 ---
 
 ## 1. Requisitos
