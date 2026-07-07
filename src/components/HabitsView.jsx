@@ -26,9 +26,27 @@ export default function HabitsView({ userId, totalRR, setTotalRR }) {
     // eslint-disable-next-line
   }, [userId]);
 
+  async function applyPenalties() {
+    try {
+      const { data, error } = await supabase.rpc("apply_habit_penalties");
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] : data;
+      if (result && result.penalty_applied > 0) {
+        const newTotal = await refreshTotalRR();
+        setTotalRR(newTotal);
+        const dias = result.days_evaluated === 1 ? "1 día" : `${result.days_evaluated} días`;
+        showToast(`Perdiste ${result.penalty_applied} RR`, `Hábitos sin cumplir en los últimos ${dias}`, 4200);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async function loadAll() {
     setLoading(true);
     try {
+      await applyPenalties();
+
       let { data: hs, error } = await supabase.from("habits")
         .select("id,name,emoji,xp").eq("user_id", userId).eq("is_active", true)
         .order("sort_order").order("created_at");
@@ -75,9 +93,9 @@ export default function HabitsView({ userId, totalRR, setTotalRR }) {
     return { k, count: countsByDate[k] || 0, d: k.split("-")[2], isToday: k === t };
   });
 
-  function showToast(msg, sub) {
+  function showToast(msg, sub, duration = 1800) {
     setToast({ msg, sub, id: Date.now() });
-    setTimeout(() => setToast(null), 1800);
+    setTimeout(() => setToast(null), duration);
   }
 
   async function refreshTotalRR() {
